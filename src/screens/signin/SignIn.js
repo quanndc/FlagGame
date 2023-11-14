@@ -1,9 +1,16 @@
 import { View, Text,StyleSheet, Image, TouchableHighlight, ImageBackground } from 'react-native'
 import React from 'react'
 import { signIn } from '../../../utils/Auth';
-
-const SignIn = () => {
-
+import SoundPlayer from 'react-native-sound-player';
+const SignIn = ({navigation}) => {
+  SoundPlayer.playSoundFile('theme', 'mp3')
+    // React.useEffect(() => {
+    //   const unsubcribe = navigation.addListener('focus', () => {
+    //     // SoundPlayer.stop();
+    //     SoundPlayer.playSoundFile('theme', 'mp3')
+    //   })
+    //   return unsubcribe;
+    // })
 
     return (
         <View style={design.background}>
@@ -17,7 +24,7 @@ const SignIn = () => {
                 underlayCorlor="#DDDDDD"
                 activeOpacity={0.9}
                 style = {[design.touchable]} onPress={() => {
-                    signIn();}} >
+                    signIn()}} >
     
                   <View style={design.button}>
                       <Text style={design.buttonText}>ĐĂNG NHẬP BẰNG GOOGLE</Text>

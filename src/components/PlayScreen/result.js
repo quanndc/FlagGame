@@ -7,7 +7,7 @@ const ResultModal = ({
   isModalVisible,
   correctCount,
   incorrectCount,
-  totalCount,
+  // totalCount,
   handleOnClose,
   handleRetry,
   handleHome,
@@ -33,7 +33,7 @@ const ResultModal = ({
             padding: 40,
             alignItems: 'center',
           }}>
-          <Text style={{fontSize: 28, color: COLORS.black}}>Results</Text>
+          <Text style={{fontSize: 28, color: COLORS.black}}>Kết quả</Text>
           <View
             style={{
               flexDirection: 'row',
@@ -44,18 +44,18 @@ const ResultModal = ({
               <Text style={{color: COLORS.success, fontSize: 30}}>
                 {correctCount}
               </Text>
-              <Text style={{fontSize: 16}}>Correct</Text>
+              <Text style={{fontSize: 16}}>Đúng</Text>
             </View>
             <View style={{alignItems: 'center', padding: 20}}>
               <Text style={{color: COLORS.error, fontSize: 30}}>
                 {incorrectCount}
               </Text>
-              <Text style={{fontSize: 16}}>Incorrect</Text>
+              <Text style={{fontSize: 16}}>Sai</Text>
             </View>
           </View>
-          <Text style={{opacity: 0.8}}>
-            {totalCount - (incorrectCount + correctCount)} Unattempted
-          </Text>
+          {/* <Text style={{opacity: 0.8}}>
+            {totalCount - (incorrectCount + correctCount)} Không chọn
+          </Text> */}
 
           {/* Try agian */}
           <TouchableOpacity
@@ -65,7 +65,7 @@ const ResultModal = ({
               justifyContent: 'center',
               paddingVertical: 10,
               width: '100%',
-              backgroundColor: COLORS.primary,
+              backgroundColor: '#549AFF',
               marginTop: 20,
               borderRadius: 50,
             }}
@@ -77,7 +77,7 @@ const ResultModal = ({
                 color: COLORS.white,
                 marginLeft: 10,
               }}>
-              Try Again
+              Chơi lại
             </Text>
           </TouchableOpacity>
           {/* Go Home */}
@@ -100,7 +100,7 @@ const ResultModal = ({
                 color: COLORS.primary,
                 marginLeft: 10,
               }}>
-              Go Home
+              Về trang chủ
             </Text>
           </TouchableOpacity>
         </View>

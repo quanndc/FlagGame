@@ -9,6 +9,7 @@ import AppNavigator from './navigators/AppNavigator';
 import SignIn from './screens/signin/SignIn';
 import Play from './screens/play/Play';
 import QuizData from './screens/play/QuizData';
+import Quiz from './screens/play/Quiz';
 
 const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -31,6 +32,7 @@ const App = () => {
     <NavigationContainer>
       {/* <QuizData/> */}
       {/* <Play/> */}
+      {/* <Quiz/> */}
       {currentUser ? <AppNavigator/> : <SignIn/>}
     </NavigationContainer>
   )

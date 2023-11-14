@@ -1,0 +1,199 @@
+<StatusBar backgroundColor={COLORS.white} barStyle={'dark-content'} />
+      {/* Top Bar */}
+      <View
+        style={{
+          flexDirection: 'column',
+          alignItems: 'left',
+          justifyContent: 'space-between',
+          paddingVertical: 10,
+          paddingHorizontal: 20,
+          backgroundColor: COLORS.white,
+          elevation: 4,
+        }}>
+        {/* Back Icon */}
+        <MaterialIcons
+          name="arrow-back"
+          size={24}
+          onPress={() => navigation.goBack()}
+        />
+
+        {/* Title */}
+        {/* <Text style={{fontSize: 16, marginLeft: 10}}>{title}</Text> */}
+
+        {/* Correct and incorrect count */}
+
+      </View>
+
+      {/* Questions and Options list */}
+      <FlatList
+        data={questions}
+        style={{
+          flex: 1,
+          backgroundColor: 'white',
+        }}
+        showsVerticalScrollIndicator={false}
+        keyExtractor={item => item.correct_answer}
+        renderItem={({ item, index }) => (
+          <View
+            key={index}
+            style={{
+              marginTop: 14,
+              marginHorizontal: 10,
+              backgroundColor: COLORS.white,
+              elevation: 2,
+              borderRadius: 2,
+            }}>
+            <View
+              style={{ padding: 20 }}>
+              <Text style={{ fontSize: 16 }}>
+                {index + 1}. {item.question}
+              </Text>
+              {item.img != '' ? (
+                <Image
+                  source={{
+                    uri: item.img,
+                  }}
+                  resizeMode={'contain'}
+                  style={{
+                    width: '80%',
+                    height: 150,
+                    marginTop: 20,
+                    marginLeft: '10%',
+                    borderRadius: 5,
+                  }}
+                />
+              ) : null}
+
+            </View>
+            {/* Options */}
+            {/* {item.allOptions.map((option, optionIndex) => {
+              return (
+                <TouchableOpacity
+                  key={optionIndex}
+                  style={{
+                    paddingVertical: 14,
+                    paddingHorizontal: 20,
+                    borderTopWidth: 1,
+                    borderColor: COLORS.border,
+                    backgroundColor: getOptionBgColor(item, option),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                  }}
+                  onPress={() => {
+                    if (item.selectedOption) {
+                      return null;
+                    }
+                    // Increase correct/incorrect count
+                    if (option == item.correct_answer) {
+                      setCorrectCount(correctCount + 1);
+                    } else {
+                      setIncorrectCount(incorrectCount + 1);
+                    }
+
+                    let tempQuestions = [...questions];
+                    tempQuestions[index].selectedOption = option;
+                    setQuestions([...tempQuestions]);
+                  }}>
+                  <Text
+                    style={{
+                      width: 25,
+                      height: 25,
+                      padding: 2,
+                      borderWidth: 1,
+                      borderColor: COLORS.border,
+                      textAlign: 'center',
+                      marginRight: 16,
+                      borderRadius: 25,
+                      color: getOptionTextColor(item, option),
+                    }}>
+                    {optionIndex + 1}
+                  </Text>
+                  <Text style={{color: getOptionTextColor(item, option)}}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })} */}
+          </View>
+        )}
+        ListFooterComponent={() => (
+          <FormButton
+            labelText="Submit"
+            style={{ margin: 10 }}
+            handleOnPress={() => {
+              // Show Result modal
+              setIsResultModalVisible(true);
+            }}
+          />
+        )}
+      />
+
+
+
+
+---------------------------------------------------
+
+
+      const renderData = ({ item }) => {
+    return (
+      <View>
+        {item == 'Egypt' ? (
+          <FlatList
+            data={data}
+            showsVerticalScrollIndicator={false}
+            style={{
+              paddingVertical: 20,
+            }}
+            renderItem={({ item: quiz }) => (
+              <View
+                style={{
+                  padding: 20,
+                  borderRadius: 8,
+                  marginVertical: 5,
+                  marginHorizontal: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: '#DAE9FF',
+                  elevation: 2,
+                }}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={{ fontSize: 18, color: COLORS.black }}>
+                    {quiz}
+                  </Text>
+                </View>
+              </View>
+            )}
+          />
+        ) : (
+          <FlatList
+            data={data2}
+            showsVerticalScrollIndicator={false}
+            style={{
+              paddingVertical: 20,
+            }}
+            renderItem={({ item: quiz }) => (
+              <View
+                style={{
+                  padding: 20,
+                  borderRadius: 8,
+                  marginVertical: 5,
+                  marginHorizontal: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: '#DAE9FF',
+                  elevation: 2,
+                }}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={{ fontSize: 18, color: COLORS.black }}>
+                    {quiz}
+                  </Text>
+                </View>
+              </View>
+            )}
+          />
+        )}
+      </View>
+    )};

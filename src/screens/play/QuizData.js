@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,20 @@ import {
   StatusBar,
   FlatList,
   TouchableOpacity,
+  ImageBackground,
+  StyleSheet
 } from 'react-native';
-import {signOut} from '../../../utils/Auth';
+import { signOut } from '../../../utils/Auth';
 import FormButton from '../../components/shared/FormButton';
-import {COLORS} from '../../constants/theme';
-import {getQuizzes} from '../../../utils/Database';
+import { COLORS } from '../../constants/theme';
+import { getQuizzes } from '../../../utils/Database';
+import SoundPlayer from 'react-native-sound-player';
 
-const QuizData = ({navigation}) => {
+const imgURL = {uri: '../../../assets/select.png'};
+const QuizData = ({ navigation, route }) => {
+  const [currentUser, setCurrentUser] = useState(route.params.currentUser);
+  console.log("log from QuizData " + currentUser.displayName)
+
   const [allQuizzes, setAllQuizzes] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -23,7 +30,7 @@ const QuizData = ({navigation}) => {
     // Transform quiz data
     let tempQuizzes = [];
     await quizzes.docs.forEach(async quiz => {
-      await tempQuizzes.push({id: quiz.id, ...quiz.data()});
+      await tempQuizzes.push({ id: quiz.id, ...quiz.data() });
     });
     await setAllQuizzes([...tempQuizzes]);
 
@@ -32,40 +39,23 @@ const QuizData = ({navigation}) => {
 
   useEffect(() => {
     getAllQuizzes();
+    const unsubcribe = navigation.addListener('focus', () => {
+      SoundPlayer.stop();
+      SoundPlayer.playSoundFile('theme', 'mp3')
+    })
+    return unsubcribe;
   }, []);
 
   return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: COLORS.background,
-        position: 'relative',
-      }}>
-      <StatusBar backgroundColor={COLORS.white} barStyle={'dark-content'} />
 
-      {/* <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: COLORS.white,
-          elevation: 4,
-          paddingHorizontal: 20,
-        }}>
-        <Text style={{fontSize: 20, color: COLORS.black}}>Quiz App</Text>
-        <Text
-          style={{
-            fontSize: 20,
-            padding: 10,
-            color: COLORS.error,
-          }}
-          onPress={signOut}>
-          Logout
-        </Text>
-      </View> */}
+    <SafeAreaView style={design.container}>
+    <StatusBar backgroundColor={COLORS.white} barStyle={'dark-content'} />
 
-      {/* Quiz list */}
-      <FlatList
+    <ImageBackground source={require('../../../assets/select.png')} resizeMode='repeat' opacity={0.75}
+  style={design.background}>
+
+
+    <FlatList
         data={allQuizzes}
         onRefresh={getAllQuizzes}
         refreshing={refreshing}
@@ -73,25 +63,25 @@ const QuizData = ({navigation}) => {
         style={{
           paddingVertical: 20,
         }}
-        renderItem={({item: quiz}) => (
+        renderItem={({ item: quiz }) => (
           <View
             style={{
               padding: 20,
-              borderRadius: 5,
+              borderRadius: 8,
               marginVertical: 5,
               marginHorizontal: 10,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'space-between',
-              backgroundColor: COLORS.white,
+              backgroundColor: '#DAE9FF',
               elevation: 2,
             }}>
-            <View style={{flex: 1, paddingRight: 10}}>
-              <Text style={{fontSize: 18, color: COLORS.black}}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={{ fontSize: 18, color: COLORS.black }}>
                 {quiz.title}
               </Text>
               {quiz.description != '' ? (
-                <Text style={{opacity: 0.5}}>{quiz.description}</Text>
+                <Text style={{ opacity: 0.5 }}>{quiz.description}</Text>
               ) : null}
             </View>
             <TouchableOpacity
@@ -99,33 +89,49 @@ const QuizData = ({navigation}) => {
                 paddingVertical: 10,
                 paddingHorizontal: 30,
                 borderRadius: 50,
-                backgroundColor: COLORS.primary + '20',
+                backgroundColor: '#A8CBFF',
               }}
               onPress={() => {
                 navigation.navigate('Play', {
                   quizId: quiz.id,
+                  currentUser: currentUser,
                 });
               }}>
-              <Text style={{color: COLORS.primary}}>Play</Text>
+              <Text style={{ color: 'black' }}>Chơi</Text>
             </TouchableOpacity>
           </View>
         )}
       />
 
-      {/* Button */}
-      <FormButton
-        labelText="Create Quiz"
-        style={{
-          position: 'absolute',
-          bottom: 20,
-          right: 20,
-          borderRadius: 50,
-          paddingHorizontal: 30,
-        }}
-        handleOnPress={() => navigation.navigate('CreateQuizScreen')}
-      />
+
+   </ImageBackground>
     </SafeAreaView>
+    // <SafeAreaView
+    //   style={{
+    //     flex: 1,
+    //     backgroundColor: '#white',
+    //     position: 'relative',
+    //   }}>
+    //   {/* Quiz list */}
+ 
+
+    //   {/* Button */}
+    // </SafeAreaView>
   );
 };
 
+const design = new StyleSheet.create({
+  container:{
+    flex: 1,
+  },
+  background:{
+    // flex: 2,
+    width: '100%',
+    height: '100%',
+    
+  }
+})
+
+
 export default QuizData;
+

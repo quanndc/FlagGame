@@ -1,8 +1,10 @@
 import { StyleSheet, View, Text, Image, ImageBackground, TouchableHighlight, Alert } from 'react-native'
-import React from 'react'
+import React,{useState} from 'react'
 import { TouchableOpacity } from 'react-native'
 
-const ModeSelect = ({ navigation }) => {
+const ModeSelect = ({ navigation, route }) => {
+  const [currentUser, setCurrentUser] = useState(route.params.currentUser);
+  // console.log("log from Mode" + currentUser.displayName)
   return (
     <View style={design.background}>
       <View style={design.header}>
@@ -19,7 +21,7 @@ const ModeSelect = ({ navigation }) => {
       <View style={design.body}>
         <View style={design.bodyContainer}>
           <ImageBackground source={require('../../../assets/gaming.png')} resizeMode="cover" style={design.bodyImage} imageStyle={{ opacity: 0.1 }}>
-            <TouchableOpacity style={design.button1} onPress={() => navigation.navigate('Difficulty')}>
+            <TouchableOpacity style={design.button1} onPress={() => navigation.navigate('QuizData',{currentUser: currentUser})}>
               <ImageBackground source={require('../../../assets/flags.jpg')} resizeMode="cover" style={design.buttonBackImage} imageStyle={{ opacity: 0.1 }} >
                 <Text style={{ fontWeight: 'bold' }}>NHÌN CỜ ĐOÁN QUỐC GIA</Text>
                 <Text style={{ fontSize: 11 }}>20 CÂU HỎI</Text>
@@ -28,7 +30,7 @@ const ModeSelect = ({ navigation }) => {
 
             </TouchableOpacity>
 
-            <TouchableOpacity style={design.button2} onPress={() => navigation.navigate('Difficulty')}>
+            <TouchableOpacity style={design.button2} onPress={() => navigation.navigate('QuizData2', {currentUser: currentUser})}>
               <ImageBackground source={require('../../../assets/flags.jpg')} resizeMode="cover" style={design.buttonBackImage} imageStyle={{ opacity: 0.1 }} >
                 <Text style={{ fontWeight: 'bold' }}>NHÌN TÊN ĐOÁN QUỐC GIA</Text>
                 <Text style={{ fontSize: 11 }}>20 CÂU HỎI</Text>

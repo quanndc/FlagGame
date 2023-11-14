@@ -1,23 +1,95 @@
-import { View, Text, SafeAreaView, StatusBar, FlatList, Image, TouchableOpacity } from 'react-native'
-import React, {useState, useEffect} from 'react'
-import { getQuestionsByQuizId, getQuizById } from '../../../utils/Database'
-import { COLORS } from '../../constants/theme';
+import { View, StyleSheet, Text, SafeAreaView, StatusBar, FlatList, Image, TouchableOpacity, Animated, Modal, ImageBackground, LogBox } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { getQuestionsByQuizId, getQuizById, updateScore, getUserById, updateRank, getAllUsers } from '../../../utils/Database'
+import { COLORS, SIZES } from '../../constants/theme';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ResultModal from '../../components/PlayScreen/result';
 import FormButton from '../../components/shared/FormButton';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 // const quizzCollections = await firestore().collection('Quizz').get();r
+import SoundPlayer from 'react-native-sound-player';
+
+LogBox.ignoreAllLogs();
+
+const Play = ({ navigation, route }) => {
+
+  const [time, setTime] = useState(10);
+
+  //create countdown timer
+
+  // const count = () => {
+  //   let i = time;
+  //   setTimeout(() => {
+  //     for(i;i>0;i--){
+  //       setTime(i)
+  //     }
+  //   },i*1000)
+  //   if(i==0){
+  //     clearTimeout(count)
+  //     setIsResultModalVisible(true);
+  //   }
+  // }
+  const playMusic = () => {
+    try {
+      SoundPlayer.pause();
+      SoundPlayer.playSoundFile('finish', 'mp3')
+    } catch (e) {
+
+    }
+  }
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      SoundPlayer.stop();
+      SoundPlayer.playSoundFile('play', 'mp3')
+    })
+    if (time != 0) {
+      const timeOut = setTimeout(() => {
+        setTime(time => time - 1);
+      }, 1000);
+      console.log(time)
+      return () => clearTimeout(timeOut)
+    }
+    if (time == 0) {
+      setIsResultModalVisible(true);
+      return;
+    }
+    return unsubscribe;
+  })
+
+  const renderClock = () => {
+    return (
+      <View style={{ widt: '100%', height: 50, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        {time != 0 ? (
+          <Text style={{ fontSize: 40 }}>{time}</Text>
+        ) : null}
+      </View>
+    )
+  }
 
 
-const Play = ({navigation, route}) => {
-    const [currentQuizId, setCurrentQuizId] = useState(route.params.quizId);
-  const [title, setTitle] = useState('');
+
+  const [currentUser, setCurrentUser] = useState(route.params.currentUser);
+  console.log(currentUser.displayName)
+  const [currentQuizId, setCurrentQuizId] = useState(route.params.quizId);
+  // const [title, setTitle] = useState('');
   const [questions, setQuestions] = useState([]);
 
   const [correctCount, setCorrectCount] = useState(0);
   const [incorrectCount, setIncorrectCount] = useState(0);
   const [isResultModalVisible, setIsResultModalVisible] = useState(false);
 
-  const shuffleArray = array => {
+
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [currentOptionSelected, setCurrentOptionSelected] = useState(null);
+  const [correctOption, setCorrectOption] = useState(null);
+  const [isOptionsDisabled, setIsOptionsDisabled] = useState(false);
+  const [score, setScore] = useState(0)
+  const [showNextButton, setShowNextButton] = useState(false)
+  const [showScoreModal, setShowScoreModal] = useState(false)
+
+
+  const shuffleArray = async array => {
     for (let i = array.length - 1; i > 0; i--) {
       // Generate random number
       let j = Math.floor(Math.random() * (i + 1));
@@ -29,34 +101,86 @@ const Play = ({navigation, route}) => {
     return array;
   };
 
+
+
+  const updateScoreBoard = async () => {
+    let user = (await getUserById(currentUser.uid)).data();
+    console.log(user)
+    let quiz = (await getQuizById(currentQuizId)).data();
+    console.log(quiz)
+    if (quiz.title == 'Chế độ dễ' && correctCount >= user.textGuess.easy) {
+      await updateScore(currentUser.uid,
+        {
+          ...user,
+          textGuess: {
+            ...user.textGuess,
+            easy: correctCount,
+            total: user.textGuess.total += correctCount,
+          }
+        })
+    }
+    else if (quiz.title == 'Chế độ trung bình' && correctCount >= user.textGuess.medium) {
+      await updateScore(currentUser.uid,
+        {
+          ...user,
+          textGuess: {
+            ...user.textGuess,
+            medium: correctCount,
+            total: user.textGuess.total += correctCount,
+          }
+        })
+    }
+    else if (quiz.title == 'Chế độ khó' && correctCount >= user.textGuess.hard) {
+      await updateScore(currentUser.uid,
+        {
+          ...user,
+          textGuess: {
+            ...user.textGuess,
+            hard: correctCount,
+            total: user.textGuess.total += correctCount,
+          }
+        })
+    }
+    else if (quiz.title == 'Chế độ siêu khó' && correctCount >= user.textGuess.veryHard) {
+      await updateScore(currentUser.uid,
+        {
+          ...user,
+          textGuess: {
+            ...user.textGuess,
+            veryHard: correctCount,
+            total: user.textGuess.total += correctCount,
+          }
+        })
+    }
+    // setCorrectCount(0)
+    console.log(correctCount)
+  }
+
   const getQuizAndQuestionDetails = async () => {
     // Get Quiz
     let currentQuiz = (await getQuizById(currentQuizId)).data();
-    // currentQuiz = currentQuiz.data();
-    console.log(currentQuiz)
-    // console.log(currentQuiz.title)
-
     // console.log(currentQuiz)
-    await setTitle(currentQuiz.title);
-
-
     // Get Questions for current quiz
     const questions = await getQuestionsByQuizId(currentQuizId);
+    // console.log(questions.docs[0].data())
 
     // Transform and shuffle options
     let tempQuestions = [];
-    await questions.docs.forEach(async (res) => {
-      let question = {...res.data()};
-      console.log(question)
 
-      // Create Single array of all options and shuffle it
+    for (let i = 0; i < 10; i++) {
+      let question = { ...questions.docs[i].data() };
+      // console.log(question)
+
       question.allOptions = await shuffleArray([
         ...question.incorrect_answers,
         question.correct_answer,
       ]);
       tempQuestions.push(question);
-    });
-    setQuestions([...tempQuestions]);
+    }
+    tempQuestions = await shuffleArray([...tempQuestions]);
+
+    await setQuestions([...tempQuestions]);
+    await setCurrentQuestionIndex(0);
   };
 
   useEffect(() => {
@@ -91,163 +215,380 @@ const Play = ({navigation, route}) => {
     }
   };
 
+
+  const validateAnswer = (selectedOption) => {
+    let correct_option = questions[currentQuestionIndex]['correct_answer'];
+    setCurrentOptionSelected(selectedOption);
+    setCorrectOption(correct_option);
+    setIsOptionsDisabled(true);
+    if (selectedOption == correct_option) {
+      SoundPlayer.playSoundFile('correct', 'mp3')
+      // Set Score
+      // setScore(score + 1)
+      setCorrectCount(correctCount + 1)
+      setShowNextButton(true)
+
+    } else {
+      SoundPlayer.play('wrong', 'mp3')
+      SoundPlayer.resume()
+      setIncorrectCount(incorrectCount + 1)
+      setShowNextButton(true)
+    }
+    if (currentQuestionIndex == questions.length - 1 && selectedOption == correct_option) {
+      setCorrectCount(correctCount + 1)
+      setIsResultModalVisible(true)
+    }
+    if (currentQuestionIndex == questions.length - 1 && selectedOption != correct_option) {
+      setIncorrectCount(incorrectCount + 1)
+      setIsResultModalVisible(true)
+    }
+  }
+  const handleNext = () => {
+    if (currentQuestionIndex == questions.length - 1) {
+      // Last Question
+      // Show Score Modal
+      setShowScoreModal(true)
+    } else {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setCurrentOptionSelected(null);
+      setCorrectOption(null);
+      setIsOptionsDisabled(false);
+      setShowNextButton(false);
+    }
+    Animated.timing(progress, {
+      toValue: currentQuestionIndex + 1,
+      duration: 1000,
+      useNativeDriver: false
+    }).start();
+  }
+
+  const renderQuestion = () => {
+    return (
+      <View style={{
+        marginTop: 2,
+        marginVertical: 40
+      }}>
+
+
+        {/* Question */}
+        <View>
+          {questions[currentQuestionIndex]?.img !== '' ?
+            <Image
+              source={{
+                uri: questions[currentQuestionIndex]?.img,
+              }}
+              resizeMode={'contain'}
+              style={{
+                width: '80%',
+                height: 200,
+                marginTop: 20,
+                marginLeft: '10%',
+                borderRadius: 5,
+              }}
+            /> : null}
+        </View>
+      </View>
+    )
+  }
+  const renderOptions = () => {
+    return (
+      <SafeAreaView style={{ marginTop: 50 }}>
+        <FlatList
+          data={questions[currentQuestionIndex]?.allOptions}
+          keyExtractor={item => item}
+          numColumns={2}
+          renderItem={({ item }) => (
+            <View style={{ display: 'flex', flexDirection: 'column', flex: 1, margin: 5, alignItems: 'center' }}>
+              <TouchableOpacity opacity={0.9}
+                onPress={() => validateAnswer(item)}
+                disabled={isOptionsDisabled}
+                key={item}
+                style={[{
+                  borderWidth: 3,
+                  borderColor: item == correctOption
+                    ? COLORS.success
+                    : item == currentOptionSelected
+                      ? COLORS.error
+                      : COLORS.secondary + '40',
+                  backgroundColor: item == correctOption
+                    ? COLORS.success + '20'
+                    : item == currentOptionSelected
+                      ? COLORS.error + '20'
+                      : COLORS.secondary + '20',
+                  height: 60, borderRadius: 20,
+                  flexDirection: 'Column',
+                  alignItems: 'center', justifyContent: 'center',
+                  paddingHorizontal: 20,
+                  marginVertical: 10
+                }, styles.optionButton]}
+              >
+                <Text style={{ textAlign: 'center', fontSize: 20 }}>
+                  {item}
+                </Text>
+
+                {
+                  item == correctOption ? (
+                    <View style={{
+                      width: 30, height: 30, borderRadius: 30 / 2,
+                      backgroundColor: COLORS.success,
+                      justifyContent: 'center', alignItems: 'center'
+                    }}>
+                      <MaterialCommunityIcons name="check" style={{
+                        color: COLORS.white,
+                        fontSize: 20
+                      }} />
+                    </View>
+                  ) : item == currentOptionSelected ? (
+                    <View style={{
+                      width: 30, height: 30, borderRadius: 30 / 2,
+                      backgroundColor: COLORS.error,
+                      justifyContent: 'center', alignItems: 'center'
+                    }}>
+                      <MaterialCommunityIcons name="close" style={{
+                        color: COLORS.white,
+                        fontSize: 20
+                      }} />
+                    </View>
+                  ) : null
+                }
+
+
+
+              </TouchableOpacity>
+            </View>
+          )}
+        >
+
+        </FlatList>
+
+
+        {/* {
+                questions[currentQuestionIndex]?.allOptions.map(option => (
+                    
+                ))
+            } */}
+      </SafeAreaView>
+    )
+  }
+  const renderNextButton = () => {
+    if (showNextButton) {
+      return (
+        <View>
+          <TouchableOpacity
+            onPress={handleNext}
+            style={{
+              marginTop: 20, width: '100%', backgroundColor: COLORS.accent, padding: 20, borderRadius: 5
+            }}>
+            <Text style={{ fontSize: 20, color: COLORS.white, textAlign: 'center' }}>Kế tiếp</Text>
+          </TouchableOpacity>
+        </View>
+      )
+    }
+    else {
+      return null
+    }
+  }
+
+
+  const [progress, setProgress] = useState(new Animated.Value(1));
+  const progressAnim = progress.interpolate({
+    inputRange: [1, 10],
+    outputRange: ['0%', '100%']
+  })
+  const renderProgressBar = () => {
+    return (
+      <View style={{
+        width: '100%',
+        height: 20,
+        borderRadius: 5,
+        backgroundColor: '#DAE9FF',
+
+      }}>
+        <Animated.View style={[{
+          position: 'absolute',
+          left: 0,
+          height: 20,
+          borderRadius: 8,
+          backgroundColor: '#A8CBFF'
+
+        }, {
+          width: progressAnim
+        }]}>
+          {/* Question Counter */}
+        </Animated.View>
+
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+        }}>
+          <Text style={{ color: 'white', fontSize: 16, marginRight: 2 }}>{currentQuestionIndex + 1}</Text>
+          <Text style={{ color: 'white', fontSize: 16 }}>/ {questions.length}</Text>
+        </View>
+
+      </View>
+    )
+  }
+
+
+
+  const getAllUsersFromDB = async () => {
+    const users = await getAllUsers()
+    // setUsersPicGuess([])
+    // setUsersTextGuess([])
+    // setAllUsers(users)
+
+
+    let tempUsersTextGuess = [];
+    let tempUsersPicGuess = [];
+    await users.docs.forEach(async user => {
+      // console.log(user.data())
+      await tempUsersTextGuess.push({
+        id: user.id,
+        displayName: user.data().displayName,
+        photoURL: user.data().photoURL,
+        score: user.data().textGuess.total,
+      })
+      await tempUsersPicGuess.push({
+        id: user.id,
+        displayName: user.data().displayName,
+        photoURL: user.data().photoURL,
+        score: user.data().picGuess.total,
+      })
+
+    });
+
+    const [usersTextGuess, setUsersTextGuess] = useState([])
+    const [usersPicGuess, setUsersPicGuess] = useState([])
+    tempUsersTextGuess = await bubbleSort([...tempUsersTextGuess])
+    tempUsersPicGuess = await bubbleSort([...tempUsersPicGuess])
+
+    tempUsersPicGuess = tempUsersPicGuess.reverse()
+    tempUsersTextGuess = tempUsersTextGuess.reverse()
+    await setUsersTextGuess([...tempUsersTextGuess])
+
+    await setUsersPicGuess([...tempUsersPicGuess])
+
+    tempUsersPicGuess.forEach((user, index) => {
+      createRank(user.id, { picGuess: { rank: index + 1 } })
+    })
+    tempUsersTextGuess.forEach((user, index) => {
+      createRank(user.id, { textGuess: { rank: index + 1 } })
+    })
+
+
+
+    // await setAllUsers([...tempUsers])
+  }
+
+
+  const renderModal = () => {
+    if (isResultModalVisible == true) {
+      playMusic();
+      updateScoreBoard()
+      getAllUsersFromDB();
+      // setShowNextButton(false);
+      return (
+        <View>
+          <ResultModal
+            isModalVisible={isResultModalVisible}
+            correctCount={correctCount}
+            incorrectCount={incorrectCount}
+            // totalCount={5}
+
+            handleOnClose={() => {
+              setIsResultModalVisible(false);
+            }}
+
+            handleRetry={() => {
+              setTime(20);
+              setCorrectCount(0);
+              setIncorrectCount(0);
+              getQuizAndQuestionDetails();
+              setIsResultModalVisible(false);
+              setCurrentOptionSelected(null);
+              setIsOptionsDisabled(false);
+              setShowNextButton(false);
+              setProgress(new Animated.Value(1));
+              Animated.timing(progress, {
+                toValue: 1,
+                duration: 1000,
+                useNativeDriver: false
+              }).start();
+            }}
+            handleHome={() => {
+              setIsResultModalVisible(false);
+              setTime(20);
+              navigation.goBack();
+            }}
+          />
+        </View>
+
+      )
+    }
+    else {
+      return null;
+    }
+  }
+
+
   return (
     <SafeAreaView
       style={{
         flex: 1,
         position: 'relative',
       }}>
-      <StatusBar backgroundColor={COLORS.white} barStyle={'dark-content'} />
-      {/* Top Bar */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingVertical: 10,
-          paddingHorizontal: 20,
-          backgroundColor: COLORS.white,
-          elevation: 4,
-        }}>
-        {/* Back Icon */}
-        <MaterialIcons
-          name="arrow-back"
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
 
-        {/* Title */}
-        <Text style={{fontSize: 16, marginLeft: 10}}>{title}</Text>
+      {/* Status bar */}
+      <StatusBar barStyle='dark-content' />
 
-        {/* Correct and incorrect count */}
-        
-      </View>
+      <ImageBackground source={require('../../../assets/select.png')} opacity={0.35}
+        resizeMode='repeat'
+        style={styles.background}>
 
-      {/* Questions and Options list */}
-      <FlatList
-        data={questions}
-        style={{
-          flex: 1,
-          backgroundColor: COLORS.background,
-        }}
-        showsVerticalScrollIndicator={false}
-        keyExtractor={item => item.question}
-        renderItem={({item, index}) => (
-          <View
-            style={{
-              marginTop: 14,
-              marginHorizontal: 10,
-              backgroundColor: COLORS.white,
-              elevation: 2,
-              borderRadius: 2,
-            }}>
-            <View style={{padding: 20}}>
-              <Text style={{fontSize: 16}}>
-                {index + 1}. {item.question}
-              </Text>
-              {item.imageUrl != '' ? (
-                <Image
-                  source={{
-                    uri: item.img,
-                }}
-                  resizeMode={'contain'}
-                  style={{
-                    width: '80%',
-                    height: 150,
-                    marginTop: 20,
-                    marginLeft: '10%',
-                    borderRadius: 5,
-                  }}
-                />
-              ) : null}
-            </View>
-            {/* Options */}
-            {item.allOptions.map((option, optionIndex) => {
-              return (
-                <TouchableOpacity
-                  key={optionIndex}
-                  style={{
-                    paddingVertical: 14,
-                    paddingHorizontal: 20,
-                    borderTopWidth: 1,
-                    borderColor: COLORS.border,
-                    backgroundColor: getOptionBgColor(item, option),
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start',
-                  }}
-                  onPress={() => {
-                    if (item.selectedOption) {
-                      return null;
-                    }
-                    // Increase correct/incorrect count
-                    if (option == item.correct_answer) {
-                      setCorrectCount(correctCount + 1);
-                    } else {
-                      setIncorrectCount(incorrectCount + 1);
-                    }
+        {/* Progressbar */}
+        {renderProgressBar()}
+        {/* Question */}
+        {renderQuestion()}
 
-                    let tempQuestions = [...questions];
-                    tempQuestions[index].selectedOption = option;
-                    setQuestions([...tempQuestions]);
-                  }}>
-                  <Text
-                    style={{
-                      width: 25,
-                      height: 25,
-                      padding: 2,
-                      borderWidth: 1,
-                      borderColor: COLORS.border,
-                      textAlign: 'center',
-                      marginRight: 16,
-                      borderRadius: 25,
-                      color: getOptionTextColor(item, option),
-                    }}>
-                    {optionIndex + 1}
-                  </Text>
-                  <Text style={{color: getOptionTextColor(item, option)}}>
-                    {option}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
-        ListFooterComponent={() => (
-          <FormButton
-            labelText="Submit"
-            style={{margin: 10}}
-            handleOnPress={() => {
-              // Show Result modal
-              setIsResultModalVisible(true);
-            }}
-          />
-        )}
-      />
+        {/* Clock */}
+        {renderClock()}
+        {/* Options */}
+        {renderOptions()}
+        {/* Next Button */}
+        {renderNextButton()}
+        {/* Score Modal */}
+        {renderModal()}
 
-      {/* Result Modal */}
-      <ResultModal
-        isModalVisible={isResultModalVisible}
-        correctCount={correctCount}
-        incorrectCount={incorrectCount}
-        totalCount={questions.length}
-        handleOnClose={() => {
-          setIsResultModalVisible(false);
-        }}
-        handleRetry={() => {
-          setCorrectCount(0);
-          setIncorrectCount(0);
-          getQuizAndQuestionDetails();
-          setIsResultModalVisible(false);
-        }}
-        handleHome={() => {
-          navigation.goBack();
-          setIsResultModalVisible(false);
-        }}
-      />
+
+
+      </ImageBackground>
+
+
+
     </SafeAreaView>
   );
 };
 
 
+const styles = new StyleSheet.create({
+  background: {
+    width: '100%',
+    height: '100%',
+  },
+  optionButton: {
+    width: '95%',
+    height: 130,
+    display: 'flex',
+    // justifyContent: 'space-between',
+    // alignItems: 'center',
+    backgroundColor: '#DAE9FF',
+    textAlign: 'center',
+    borderRadius: 8,
+  }
+})
+
+
 export default Play
+
+

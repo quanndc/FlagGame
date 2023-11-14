@@ -2,11 +2,12 @@ import React, { useState } from 'react'
 import { View, Text, SafeAreaView, StatusBar, Image, TouchableOpacity, Modal, Animated } from 'react-native'
 import { COLORS, SIZES } from '../../constants/theme';
 import data from '../../../data';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+// import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const Quiz = () => {
+const Quiz = ({navigation, route}) => {
 
     const allQuestions = data;
+    const [currentQuizId, setCurrentQuizId] = useState(route.params.quizId);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
     const [currentOptionSelected, setCurrentOptionSelected] = useState(null);
     const [correctOption, setCorrectOption] = useState(null);
@@ -84,7 +85,7 @@ const Quiz = () => {
                     fontSize: 30
                 }}>{allQuestions[currentQuestionIndex]?.question}</Text> */}
                 <Image
-                    source={require('../../../assets/FlagVietNam.png')}
+                    source={require('../../../assets/flags.jpg')}
                     style={{
                         width: SIZES.width,
                         height: 130,
