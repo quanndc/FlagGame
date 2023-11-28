@@ -23,7 +23,7 @@ const ModeSelect = ({ navigation, route }) => {
           <ImageBackground source={require('../../../assets/gaming.png')} resizeMode="cover" style={design.bodyImage} imageStyle={{ opacity: 0.1 }}>
             <TouchableOpacity style={design.button1} onPress={() => navigation.navigate('QuizData',{currentUser: currentUser})}>
               <ImageBackground source={require('../../../assets/flags.jpg')} resizeMode="cover" style={design.buttonBackImage} imageStyle={{ opacity: 0.1 }} >
-                <Text style={{ fontWeight: 'bold' }}>NHÌN CỜ ĐOÁN QUỐC GIA</Text>
+                <Text style={{ fontWeight: 'bold' }}>NHÌN QUỐC KỲ ĐOÁN QUỐC GIA</Text>
                 <Text style={{ fontSize: 11 }}>20 CÂU HỎI</Text>
               </ImageBackground>
 
@@ -32,7 +32,7 @@ const ModeSelect = ({ navigation, route }) => {
 
             <TouchableOpacity style={design.button2} onPress={() => navigation.navigate('QuizData2', {currentUser: currentUser})}>
               <ImageBackground source={require('../../../assets/flags.jpg')} resizeMode="cover" style={design.buttonBackImage} imageStyle={{ opacity: 0.1 }} >
-                <Text style={{ fontWeight: 'bold' }}>NHÌN TÊN ĐOÁN QUỐC GIA</Text>
+                <Text style={{ fontWeight: 'bold' }}>NHÌN TÊN ĐOÁN QUỐC KỲ</Text>
                 <Text style={{ fontSize: 11 }}>20 CÂU HỎI</Text>
               </ImageBackground>
 

@@ -1,8 +1,16 @@
 import { StyleSheet, View, Text, Image, ImageBackground, TouchableHighlight, Alert } from 'react-native'
 import React from 'react'
 import { TouchableOpacity } from 'react-native'
+import { setMode } from 'react-native-sound'
 
 const DiffSelections = ({ navigation }) => {
+
+
+  React.useEffect(() => {
+    const subscriber = navigation.addListener('focus', () => {
+      // SoundPlayer.playSoundFile('theme', 'mp3')
+    })
+  })
   return (
     <View style={design.background}>
       <View style={design.header}>

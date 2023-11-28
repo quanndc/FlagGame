@@ -14,8 +14,19 @@ import FormButton from '../../components/shared/FormButton';
 import { COLORS } from '../../constants/theme';
 import { getQuizzes } from '../../../utils/Database';
 import SoundPlayer from 'react-native-sound-player';
+import Sound from 'react-native-sound';
 
 const imgURL = {uri: '../../../assets/select.png'};
+
+
+Sound.setCategory('Playback', true);
+let ding = new Sound('play.mp3', Sound.MAIN_BUNDLE, (error) => {
+  if(error){
+    console.log('failed');
+    return;
+  }
+});
+
 const QuizData = ({ navigation, route }) => {
   const [currentUser, setCurrentUser] = useState(route.params.currentUser);
   console.log("log from QuizData " + currentUser.displayName)
@@ -40,8 +51,8 @@ const QuizData = ({ navigation, route }) => {
   useEffect(() => {
     getAllQuizzes();
     const unsubcribe = navigation.addListener('focus', () => {
-      SoundPlayer.stop();
-      SoundPlayer.playSoundFile('theme', 'mp3')
+      // SoundPlayer.stop();
+      SoundPlayer.resume('theme', 'mp3')
     })
     return unsubcribe;
   }, []);

@@ -8,6 +8,14 @@ import FormButton from '../../components/shared/FormButton';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 // const quizzCollections = await firestore().collection('Quizz').get();r
 import SoundPlayer from 'react-native-sound-player';
+import useSound from 'react-native-use-sound';
+
+import {
+  Player,
+  Recorder,
+  MediaStates
+} from '@react-native-community/audio-toolkit';
+
 
 LogBox.ignoreAllLogs();
 
@@ -37,9 +45,10 @@ const Play = ({ navigation, route }) => {
 
     }
   }
+  
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
-      SoundPlayer.stop();
+      // SoundPlayer.stop();
       SoundPlayer.playSoundFile('play', 'mp3')
     })
     if (time != 0) {
@@ -215,34 +224,6 @@ const Play = ({ navigation, route }) => {
     }
   };
 
-
-  const validateAnswer = (selectedOption) => {
-    let correct_option = questions[currentQuestionIndex]['correct_answer'];
-    setCurrentOptionSelected(selectedOption);
-    setCorrectOption(correct_option);
-    setIsOptionsDisabled(true);
-    if (selectedOption == correct_option) {
-      SoundPlayer.playSoundFile('correct', 'mp3')
-      // Set Score
-      // setScore(score + 1)
-      setCorrectCount(correctCount + 1)
-      setShowNextButton(true)
-
-    } else {
-      SoundPlayer.play('wrong', 'mp3')
-      SoundPlayer.resume()
-      setIncorrectCount(incorrectCount + 1)
-      setShowNextButton(true)
-    }
-    if (currentQuestionIndex == questions.length - 1 && selectedOption == correct_option) {
-      setCorrectCount(correctCount + 1)
-      setIsResultModalVisible(true)
-    }
-    if (currentQuestionIndex == questions.length - 1 && selectedOption != correct_option) {
-      setIncorrectCount(incorrectCount + 1)
-      setIsResultModalVisible(true)
-    }
-  }
   const handleNext = () => {
     if (currentQuestionIndex == questions.length - 1) {
       // Last Question
@@ -291,6 +272,44 @@ const Play = ({ navigation, route }) => {
     )
   }
   const renderOptions = () => {
+
+    const [play] = useSound('/home/cbml/Repos/login/android/app/src/main/res/raw/correct.mp3');
+
+    const validateAnswer = (selectedOption) => {
+      let correct_option = questions[currentQuestionIndex]['correct_answer'];
+      setCurrentOptionSelected(selectedOption);
+      setCorrectOption(correct_option);
+      setIsOptionsDisabled(true);
+      if (selectedOption == correct_option) {        
+        // play();
+        // SoundPlayer.playSoundFile('correct', 'mp3')
+  
+        // SoundPlayer.playSoundFile('theme', 'mp3')
+        // Set Score
+        // setScore(score + 1)
+        setCorrectCount(correctCount + 1)
+        setShowNextButton(true)
+  
+      } else {
+        setIncorrectCount(incorrectCount + 1)
+        setShowNextButton(true)
+      }
+      if (currentQuestionIndex == questions.length - 1 && selectedOption == correct_option) {
+        setCorrectCount(correctCount + 1)
+        setIsResultModalVisible(true)
+      }
+      if (currentQuestionIndex == questions.length - 1 && selectedOption != correct_option) {
+        setIncorrectCount(incorrectCount + 1)
+        setIsResultModalVisible(true)
+      }
+    }
+
+
+
+
+
+
+
     return (
       <SafeAreaView style={{ marginTop: 50 }}>
         <FlatList
@@ -300,7 +319,7 @@ const Play = ({ navigation, route }) => {
           renderItem={({ item }) => (
             <View style={{ display: 'flex', flexDirection: 'column', flex: 1, margin: 5, alignItems: 'center' }}>
               <TouchableOpacity opacity={0.9}
-                onPress={() => validateAnswer(item)}
+                onPress={() => [validateAnswer(item),play()]}
                 disabled={isOptionsDisabled}
                 key={item}
                 style={[{
@@ -501,7 +520,8 @@ const Play = ({ navigation, route }) => {
             }}
 
             handleRetry={() => {
-              setTime(20);
+              SoundPlayer.playSoundFile('play', 'mp3')
+              setTime(10);
               setCorrectCount(0);
               setIncorrectCount(0);
               getQuizAndQuestionDetails();
@@ -545,12 +565,10 @@ const Play = ({ navigation, route }) => {
       <ImageBackground source={require('../../../assets/select.png')} opacity={0.35}
         resizeMode='repeat'
         style={styles.background}>
-
         {/* Progressbar */}
         {renderProgressBar()}
         {/* Question */}
         {renderQuestion()}
-
         {/* Clock */}
         {renderClock()}
         {/* Options */}

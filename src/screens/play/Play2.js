@@ -12,6 +12,55 @@ import SoundPlayer from 'react-native-sound-player';
 LogBox.ignoreAllLogs();
 
 const Play = ({ navigation, route }) => {
+
+  const [time, setTime] = useState(10);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // SoundPlayer.stop();
+      SoundPlayer.playSoundFile('play', 'mp3')
+    })
+    if (time != 0) {
+      const timeOut = setTimeout(() => {
+        setTime(time => time - 1);
+      }, 1000);
+      console.log(time)
+      return () => clearTimeout(timeOut)
+    }
+    if (time == 0) {
+      setIsResultModalVisible(true);
+      return;
+    }
+    return unsubscribe;
+  })
+
+  
+  const renderClock = () => {
+    return (
+      <View style={{ widt: '100%', height: 50, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        {time != 0 ? (
+          <Text style={{ fontSize: 40 }}>{time}</Text>
+        ) : null}
+      </View>
+    )
+  }
+
+
+
+
+  const playMusic = () => {
+    try {
+      SoundPlayer.pause();
+      SoundPlayer.playSoundFile('finish', 'mp3')
+    } catch (e) {
+
+    }
+  }
+
+
+
+
+
+
   const [currentUser, setCurrentUser] = useState(route.params.currentUser);
   console.log("log from Play 2" + currentUser.displayName)
   const [currentQuizId, setCurrentQuizId] = useState(route.params.quizId);
@@ -225,7 +274,7 @@ const Play = ({ navigation, route }) => {
   }
   const renderOptions = () => {
     return (
-      <SafeAreaView style={{ marginTop: 50 }}>
+      <SafeAreaView style={{ marginTop: 0 }}>
         <FlatList
           data={questions[currentQuestionIndex]?.allOptions}
           keyExtractor={item => item}
@@ -413,6 +462,7 @@ const Play = ({ navigation, route }) => {
 
   const renderModal = () => {
     if (isResultModalVisible == true) {
+      playMusic();
       updateScoreBoard(correctCount);
       getAllUsersFromDB();
       // setShowNextButton(false);
@@ -431,6 +481,7 @@ const Play = ({ navigation, route }) => {
             handleRetry={() => {
               setCorrectCount(0);
               setIncorrectCount(0);
+              setTime(10);
               setCurrentOptionSelected(null);
               getQuizAndQuestionDetails();
               setIsResultModalVisible(false);
@@ -476,6 +527,8 @@ const Play = ({ navigation, route }) => {
         {renderProgressBar()}
         {/* Question */}
         {renderQuestion()}
+         {/* Clock */}
+         {renderClock()}
         {/* Options */}
         {renderOptions()}
         {/* Next Button */}
@@ -501,7 +554,7 @@ const styles = new StyleSheet.create({
   },
   optionButton: {
     width: '99%',
-    height: 170,
+    height: 165,
     display: 'flex',
     // justifyContent: 'space-between',
     // alignItems: 'center',

@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, Image, ImageBackground, TouchableHighlight, Alert } from 'react-native'
+import { StyleSheet, View, Text, Image, ImageBackground, TouchableHighlight, Alert,StatusBar } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { TouchableOpacity } from 'react-native'
 import auth from '@react-native-firebase/auth';
@@ -9,9 +9,7 @@ const Home = ({ navigation }) => {
 
   React.useEffect(() => {
     const unsubcribe = navigation.addListener('focus', () => {
-      // SoundPlayer.stop();
       SoundPlayer.playSoundFile('theme', 'mp3')
-      SoundPlayer.setMixAudio(true);
     })
     return unsubcribe;
   })
@@ -30,8 +28,8 @@ const Home = ({ navigation }) => {
         currentUser: currentUser
       });
       // return;
-    } 
-    if(user.data() === undefined || user.data() === null) {
+    }
+    if (user.data() === undefined || user.data() === null) {
       await createRank(currentUser.uid, {
         textGuess: {
           rank: 0
@@ -81,6 +79,8 @@ const Home = ({ navigation }) => {
 
   return (
     <View style={design.background}>
+      <StatusBar barStyle='dark-content' />
+
       <View style={design.header}>
         <ImageBackground source={require('../../../assets/flags.jpg')} resizeMode="cover" style={design.bodyImage} imageStyle={{ opacity: 0.1 }} >
           <Image style={design.headerImage} source={require('../../../assets/logo.png')}></Image>
